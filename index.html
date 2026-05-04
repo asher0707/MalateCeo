@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>My Week</title>
+<title>Malarte CEO</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -25,9 +25,20 @@
 
   body { padding: 2rem 2.5rem; }
 
-  header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 2rem; }
+  header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
   header h1 { font-size: 1.6rem; font-weight: 300; letter-spacing: -0.02em; color: var(--text); }
   header span { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.08em; }
+  .notion-link {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.07em;
+    color: var(--muted); text-decoration: none;
+    background: var(--surface); border: 0.5px solid var(--border2);
+    padding: 5px 12px; border-radius: 20px;
+    transition: color .15s, border-color .15s;
+  }
+  .notion-link:hover { color: var(--accent); border-color: rgba(200,240,96,0.4); }
+  .notion-link svg { flex-shrink: 0; }
 
   /* axis */
   .axis-row { display: flex; margin-left: 52px; margin-bottom: 4px; position: relative; height: 16px; }
@@ -107,8 +118,14 @@
 <body>
 
 <header>
-  <h1>Malarte Ceo</h1>
+  <h1>Malarte CEO</h1>
   <span>24-HOUR PLANNER</span>
+  <a class="notion-link" href="https://www.notion.so/2026-Malarte-CEO-30c1493fa7a2805a81a3ff07371f4650" target="_blank" rel="noopener">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/>
+    </svg>
+    2026 Malarte CEO
+  </a>
 </header>
 
 <div class="axis-row" id="axisRow"></div>
