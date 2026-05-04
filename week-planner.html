@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Week</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #181818;
+    --surface2: #222222;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #e8e8e0;
+    --muted: #888880;
+    --accent: #c8f060;
+    --accent-dim: rgba(200,240,96,0.12);
+    --radius: 10px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+  body { padding: 2rem 2.5rem; }
+
+  header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 2rem; }
+  header h1 { font-size: 1.6rem; font-weight: 300; letter-spacing: -0.02em; color: var(--text); }
+  header span { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.08em; }
+
+  /* axis */
+  .axis-row { display: flex; margin-left: 52px; margin-bottom: 4px; position: relative; height: 16px; }
+  .axis-mark { position: absolute; font-family: var(--mono); font-size: 9px; color: var(--muted); transform: translateX(-50%); }
+
+  /* day rows */
+  .days { display: flex; flex-direction: column; gap: 6px; }
+  .day-row { display: flex; align-items: center; gap: 8px; }
+  .day-label { font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--muted); width: 44px; text-align: right; flex-shrink: 0; letter-spacing: 0.06em; }
+  .tl-wrap { flex: 1; position: relative; height: 38px; background: var(--surface); border-radius: 6px; border: 0.5px solid var(--border); overflow: hidden; }
+  .tick { position: absolute; top: 0; height: 100%; width: 0.5px; background: var(--border); pointer-events: none; }
+  .tick-major { background: rgba(255,255,255,0.12); }
+  .block {
+    position: absolute; top: 2px; height: calc(100% - 4px);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 9px; font-weight: 500;
+    overflow: hidden; white-space: nowrap; border-radius: 4px;
+    cursor: pointer; transition: filter .15s, opacity .15s;
+    letter-spacing: 0.03em;
+  }
+  .block:hover { filter: brightness(1.15); }
+  .block-label { padding: 0 6px; overflow: hidden; text-overflow: ellipsis; }
+
+  /* legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .leg { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); background: var(--surface); padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border); }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* form */
+  .form-wrap { margin-top: 2rem; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 1.5rem; }
+  .form-wrap h2 { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 1.25rem; font-family: var(--mono); }
+
+  .day-toggles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem; }
+  .dtog {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+    padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--border2);
+    background: var(--surface2); color: var(--muted); cursor: pointer; transition: all .15s;
+  }
+  .dtog.on { background: var(--accent-dim); color: var(--accent); border-color: rgba(200,240,96,0.4); }
+
+  .fields { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 60px auto; gap: 10px; align-items: end; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+  .field input, .field select {
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    color: var(--text); border-radius: 6px; padding: 8px 10px;
+    font-family: var(--mono); font-size: 12px; outline: none;
+    transition: border-color .15s;
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field input:focus, .field select:focus { border-color: rgba(200,240,96,0.5); }
+  .field select option { background: var(--surface2); }
+  .field input[type=color] {
+    padding: 2px 4px; height: 36px; width: 100%; cursor: pointer;
+  }
+  .add-btn {
+    background: var(--accent); color: #0f0f0f; border: none;
+    border-radius: 6px; padding: 8px 18px; font-family: var(--mono);
+    font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+    cursor: pointer; white-space: nowrap; transition: opacity .15s;
+    height: 36px;
+  }
+  .add-btn:hover { opacity: 0.85; }
+  .msg { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 10px; min-height: 14px; }
+  .msg.err { color: #f06060; }
+  .msg.ok { color: var(--accent); }
+
+  @media (max-width: 700px) {
+    body { padding: 1rem; }
+    .fields { grid-template-columns: 1fr 1fr; }
+    .add-btn { grid-column: span 2; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>My Week</h1>
+  <span>24-HOUR PLANNER</span>
+</header>
+
+<div class="axis-row" id="axisRow"></div>
+<div class="days" id="daysContainer"></div>
+<div class="legend" id="legend"></div>
+
+<div class="form-wrap">
+  <h2>Add time block</h2>
+  <div class="day-toggles" id="dayToggles"></div>
+  <div class="fields">
+    <div class="field">
+      <label>Start hour</label>
+      <input type="number" id="fStartH" min="0" max="23" value="0" placeholder="0"/>
+    </div>
+    <div class="field">
+      <label>Start min</label>
+      <select id="fStartM">
+        <option value="0">:00</option>
+        <option value="15">:15</option>
+        <option value="30">:30</option>
+        <option value="45">:45</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>End hour</label>
+      <input type="number" id="fEndH" min="0" max="24" value="6" placeholder="6"/>
+    </div>
+    <div class="field">
+      <label>End min</label>
+      <select id="fEndM">
+        <option value="0">:00</option>
+        <option value="15">:15</option>
+        <option value="30">:30</option>
+        <option value="45">:45</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Color</label>
+      <input type="color" id="fColor" value="#6c8fd4"/>
+    </div>
+    <div class="field">
+      <label>Label</label>
+      <input type="text" id="fLabel" value="Sleep" placeholder="Label" style="min-width:100px"/>
+    </div>
+  </div>
+  <div style="margin-top:10px">
+    <button class="add-btn" onclick="addBlock()">+ Add block</button>
+  </div>
+  <p class="msg" id="msg"></p>
+</div>
+
+<script>
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+let data = {};
+let selDays = new Set(DAYS);
+
+function load() {
+  try { const s = localStorage.getItem('weekplan_v2'); if (s) data = JSON.parse(s); } catch(e) {}
+  DAYS.forEach(d => { if (!data[d]) data[d] = []; });
+}
+
+function save() {
+  try { localStorage.setItem('weekplan_v2', JSON.stringify(data)); } catch(e) {}
+}
+
+function toFrac(h, m) { return h + m / 60; }
+function pct(v) { return (v / 24) * 100; }
+function fmtTime(h, m) {
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function renderAxis() {
+  const ax = document.getElementById('axisRow');
+  ax.innerHTML = '';
+  [0,2,4,6,8,10,12,14,16,18,20,22,24].forEach(h => {
+    const el = document.createElement('span');
+    el.className = 'axis-mark';
+    el.style.left = pct(h) + '%';
+    el.textContent = h === 24 ? '24' : h;
+    ax.appendChild(el);
+  });
+}
+
+function textColor(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  const lum = 0.299*r + 0.587*g + 0.114*b;
+  return lum > 140 ? '#111' : '#fff';
+}
+
+function renderDays() {
+  const c = document.getElementById('daysContainer');
+  c.innerHTML = '';
+  DAYS.forEach(day => {
+    const row = document.createElement('div');
+    row.className = 'day-row';
+    const lbl = document.createElement('div');
+    lbl.className = 'day-label';
+    lbl.textContent = day;
+    const tlw = document.createElement('div');
+    tlw.className = 'tl-wrap';
+
+    // ticks — minor every 1h, major every 6h
+    for (let h = 1; h < 24; h++) {
+      const t = document.createElement('div');
+      t.className = 'tick' + (h % 6 === 0 ? ' tick-major' : '');
+      t.style.left = pct(h) + '%';
+      tlw.appendChild(t);
+    }
+
+    (data[day] || []).forEach((b, i) => {
+      const el = document.createElement('div');
+      el.className = 'block';
+      const start = toFrac(b.sh, b.sm);
+      const end = toFrac(b.eh, b.em);
+      const w = pct(end - start);
+      el.style.left = pct(start) + '%';
+      el.style.width = w + '%';
+      el.style.background = b.color;
+      el.style.color = textColor(b.color);
+      el.title = `${b.label}  ${fmtTime(b.sh,b.sm)} – ${fmtTime(b.eh,b.em)}  (click to remove)`;
+      const span = document.createElement('span');
+      span.className = 'block-label';
+      span.textContent = w > 3 ? b.label : '';
+      el.appendChild(span);
+      el.onclick = () => {
+        if (confirm(`Remove "${b.label}" from ${day}?`)) {
+          data[day].splice(i, 1); save(); render();
+        }
+      };
+      tlw.appendChild(el);
+    });
+
+    row.appendChild(lbl);
+    row.appendChild(tlw);
+    c.appendChild(row);
+  });
+}
+
+function renderLegend() {
+  const lg = document.getElementById('legend');
+  lg.innerHTML = '';
+  const seen = {};
+  DAYS.forEach(d => (data[d] || []).forEach(b => {
+    const key = b.label + b.color;
+    if (!seen[key]) {
+      seen[key] = true;
+      const el = document.createElement('div');
+      el.className = 'leg';
+      el.innerHTML = `<span class="leg-dot" style="background:${b.color}"></span>${b.label}`;
+      lg.appendChild(el);
+    }
+  }));
+}
+
+function renderToggles() {
+  const c = document.getElementById('dayToggles');
+  c.innerHTML = '';
+  DAYS.forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = 'dtog' + (selDays.has(d) ? ' on' : '');
+    btn.textContent = d;
+    btn.onclick = () => {
+      if (selDays.has(d)) { if (selDays.size > 1) selDays.delete(d); }
+      else selDays.add(d);
+      renderToggles();
+    };
+    c.appendChild(btn);
+  });
+}
+
+function render() { renderDays(); renderLegend(); }
+
+function addBlock() {
+  const sh = parseInt(document.getElementById('fStartH').value) || 0;
+  const sm = parseInt(document.getElementById('fStartM').value) || 0;
+  const eh = parseInt(document.getElementById('fEndH').value) || 0;
+  const em = parseInt(document.getElementById('fEndM').value) || 0;
+  const label = document.getElementById('fLabel').value.trim();
+  const color = document.getElementById('fColor').value;
+  const msg = document.getElementById('msg');
+
+  const start = toFrac(sh, sm), end = toFrac(eh, em);
+  if (sh < 0 || sh > 23 || eh < 0 || eh > 24) { msg.className='msg err'; msg.textContent='Hours must be between 0 and 24.'; return; }
+  if (start >= end) { msg.className='msg err'; msg.textContent='Start time must be before end time.'; return; }
+  if (!label) { msg.className='msg err'; msg.textContent='Please enter a label.'; return; }
+
+  msg.className='msg ok';
+  selDays.forEach(d => {
+    data[d].push({ sh, sm, eh, em, label, color });
+    data[d].sort((a, b) => toFrac(a.sh,a.sm) - toFrac(b.sh,b.sm));
+  });
+  save(); render();
+  msg.textContent = `Added "${label}" (${fmtTime(sh,sm)}–${fmtTime(eh,em)}) to ${[...selDays].join(', ')}.`;
+}
+
+load(); renderAxis(); renderToggles(); render();
+</script>
+</body>
+</html>
